@@ -1,0 +1,18 @@
+# 依赖与构建产物
+node_modules/
+package-lock.json.bak
+
+# iOS 构建产物
+ios/App/build/
+ios/App/DerivedData/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+ios/App/CapApp-SPM/.build/
+ios/App/CapApp-SPM/.swiftpm/
+*.ipa
+*.xcarchive
+.DS_Store
+
+# 系统
+Thumbs.db

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no,interactive-widget=resizes-content">
+<meta name="theme-color" content="#0b1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="卡密生成器">
+<meta name="mobile-web-app-capable" content="yes">
+<title>卡密生成器 · 手机版</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="stylesheet" href="./assets/css/style.css">
+</head>
+<body>
+<div id="bgfx" aria-hidden="true"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span></div>
+
+<div class="app" id="app">
+
+  <!-- ===== 顶部栏 ===== -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M14 7a4 4 0 1 0-3.6 3.98L9 12.4H7v2H5.6l-1.9 1.9a1 1 0 0 0-.29.7V19a1 1 0 0 0 1 1h2.6a1 1 0 0 0 .7-.29L14 13.6A4 4 0 0 0 14 7Zm1.5 2.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg></div>
+      <div class="brand-txt">
+        <h1>卡密生成器</h1>
+        <p id="brandSub">离线可用 · 本地存储</p>
+      </div>
+    </div>
+    <button class="icon-btn" id="btnTheme" title="切换主题" aria-label="切换主题">
+      <svg class="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2.5a1 1 0 0 1 1 1V22a1 1 0 0 1-2 0v-1.5a1 1 0 0 1 1-1Zm0-19a1 1 0 0 1 1 1V3a1 1 0 0 1-2 0V1.5a1 1 0 0 1 1-1ZM2.5 11h1.6a1 1 0 1 1 0 2H2.5a1 1 0 1 1 0-2Zm17.4 0h1.6a1 1 0 1 1 0 2h-1.6a1 1 0 1 1 0-2ZM5.3 5.3a1 1 0 0 1 1.4 0l1.1 1.1A1 1 0 0 1 6.4 7.8L5.3 6.7a1 1 0 0 1 0-1.4Zm11.9 11.9a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1-1.4 1.4l-1.1-1.1a1 1 0 0 1 0-1.4Zm1.4-11.9a1 1 0 0 1 0 1.4l-1.1 1.1a1 1 0 0 1-1.4-1.4l1.1-1.1a1 1 0 0 1 1.4 0ZM6.7 17.2a1 1 0 0 1 0 1.4l-1.1 1.1a1 1 0 0 1-1.4-1.4l1.1-1.1a1 1 0 0 1 1.4 0Z"/></svg>
+    </button>
+  </header>
+
+  <main class="scroll" id="scroll">
+
+    <!-- ===== 页面：生成 ===== -->
+    <section class="page is-active" id="page-gen">
+
+      <!-- 统计 -->
+      <div class="statbar">
+        <button class="stat" data-jump="all"><b id="sTotal">0</b><span>总数</span></button>
+        <button class="stat" data-jump="0"><b id="sUnused" class="c-ok">0</b><span>未使用</span></button>
+        <button class="stat" data-jump="1"><b id="sUsed" class="c-mute">0</b><span>已使用</span></button>
+        <button class="stat" data-jump="2"><b id="sBan" class="c-bad">0</b><span>已封禁</span></button>
+      </div>
+
+      <!-- 生成模式 -->
+      <div class="card">
+        <div class="card-hd">
+          <span class="hd-ico g1"><svg viewBox="0 0 24 24"><path d="M7 7h10v2H7V7Zm0 4h10v2H7v-2Zm0 4h7v2H7v-2Z"/></svg></span>
+          <h2>生成模式</h2>
+        </div>
+        <div class="seg" id="modeSeg">
+          <button class="seg-i is-on" data-mode="single">单码 · 激活码</button>
+          <button class="seg-i" data-mode="pair">双码 · 卡号+密码</button>
+        </div>
+      </div>
+
+      <!-- 基础配置 -->
+      <div class="card">
+        <div class="card-hd">
+          <span class="hd-ico g2"><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm9 4a7.9 7.9 0 0 0-.14-1.5l2-1.55-2-3.46-2.35.94A8 8 0 0 0 16.2 4.6L15.8 2h-4l-.4 2.6a8 8 0 0 0-2.3 1.33L6.75 5 4.75 8.45l2 1.55A8 8 0 0 0 6.6 12c0 .5.05 1 .15 1.5l-2 1.55 2 3.46 2.35-.94a8 8 0 0 0 2.3 1.33l.4 2.6h4l.4-2.6a8 8 0 0 0 2.3-1.33l2.35.94 2-3.46-2-1.55c.1-.5.15-1 .15-1.5Z"/></svg></span>
+          <h2>基础配置</h2>
+          <button class="link-btn" id="btnReset">重置</button>
+        </div>
+        <div class="grid2">
+          <label class="field"><span>卡密前缀</span><input type="text" id="prefix" placeholder="如 VIP" autocomplete="off"></label>
+          <label class="field"><span>卡密后缀</span><input type="text" id="suffix" placeholder="如 2026" autocomplete="off"></label>
+          <label class="field"><span>随机长度 <i>4-64</i></span><input type="number" id="codeLen" value="16" min="4" max="64" inputmode="numeric"></label>
+          <label class="field"><span>生成数量 <i>1-5000</i></span><input type="number" id="genNum" value="10" min="1" max="5000" inputmode="numeric"></label>
+        </div>
+        <label class="field"><span>有序起始序号 <i>留空则随机</i></span><input type="number" id="startSort" placeholder="例如 1001 → 1001/1002/1003…" inputmode="numeric"></label>
+        <div class="grid2">
+          <label class="field"><span>分隔格式</span>
+            <select id="splitType">
+              <option value="0">无分隔</option>
+              <option value="4" selected>每 4 位空格</option>
+              <option value="6">每 6 位空格</option>
+              <option value="8">每 8 位空格</option>
+              <option value="line">每 4 位横杠</option>
+            </select>
+          </label>
+          <label class="field"><span>输出大小写</span>
+            <select id="caseType">
+              <option value="upper" selected>全部大写</option>
+              <option value="lower">全部小写</option>
+              <option value="raw">保持原样</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- 字符池 -->
+      <div class="card">
+        <div class="card-hd">
+          <span class="hd-ico g3"><svg viewBox="0 0 24 24"><path d="M9 4h6v2H9V4ZM4 8h16v12H4V8Zm3 3v6h2v-6H7Zm4 0v6h2v-6h-2Zm4 0v6h2v-6h-2Z"/></svg></span>
+          <h2>字符池</h2>
+        </div>
+        <div class="chips" id="poolChips">
+          <label class="chip"><input type="checkbox" id="cNum" checked><span>数字 0-9</span></label>
+          <label class="chip"><input type="checkbox" id="cLower" checked><span>小写 a-z</span></label>
+          <label class="chip"><input type="checkbox" id="cUpper" checked><span>大写 A-Z</span></label>
+          <label class="chip"><input type="checkbox" id="cSymbol"><span>特殊符号</span></label>
+        </div>
+        <p class="sub">易混淆字符</p>
+        <div class="chips">
+          <label class="chip warn"><input type="checkbox" id="f0O" checked><span>排除 0 O o</span></label>
+          <label class="chip warn"><input type="checkbox" id="flI" checked><span>排除 1 l I</span></label>
+        </div>
+        <div class="grid2">
+          <label class="field"><span>黑名单字符 <i>不想出现</i></span><input type="text" id="blackList" placeholder="例如 Z9" autocomplete="off"></label>
+          <label class="field"><span>白名单覆盖 <i>仅用这些字符</i></span><input type="text" id="whiteList" placeholder="留空不启用" autocomplete="off"></label>
+        </div>
+        <p class="sub">规则限制</p>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="noRepeat"><span>禁止连续重复</span></label>
+          <label class="chip"><input type="checkbox" id="noSeq"><span>禁止递增序列</span></label>
+        </div>
+        <label class="field"><span>首字符限制</span>
+          <select id="firstRule">
+            <option value="any">无限制</option>
+            <option value="num">只能数字</option>
+            <option value="letter">只能字母</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- 备注 -->
+      <div class="card">
+        <div class="card-hd">
+          <span class="hd-ico g4"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 12 22l-9-9V4h9l8.6 8.6a1.4 1.4 0 0 1 0 2.8ZM7 8.5A1.5 1.5 0 1 0 7 5.5a1.5 1.5 0 0 0 0 3Z"/></svg></span>
+          <h2>批量备注</h2>
+        </div>
+        <div class="grid3">
+          <label class="field"><span>分类标签</span><input type="text" id="cardTag" placeholder="VIP月卡" autocomplete="off"></label>
+          <label class="field"><span>面值</span><input type="text" id="cardPrice" placeholder="10元" autocomplete="off"></label>
+          <label class="field"><span>有效期</span><input type="text" id="cardExp" placeholder="2026-12-31" autocomplete="off"></label>
+        </div>
+      </div>
+
+      <!-- 预览 -->
+      <div class="card preview-card">
+        <div class="card-hd">
+          <span class="hd-ico g5"><svg viewBox="0 0 24 24"><path d="M12 5C6.5 5 2.7 9.1 1.5 12c1.2 2.9 5 7 10.5 7s9.3-4.1 10.5-7C21.3 9.1 17.5 5 12 5Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg></span>
+          <h2>实时预览</h2>
+          <button class="link-btn" id="btnRoll">换一批</button>
+        </div>
+        <div class="preview" id="previewBox">
+          <div class="pv-line">正在生成预览…</div>
+        </div>
+        <p class="pool-info" id="poolInfo"></p>
+      </div>
+
+      <div class="tip">
+        <svg viewBox="0 0 24 24"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Zm1 14h-2v-2h2v2Zm0-4h-2V7h2v5Z"/></svg>
+        <span>数据仅保存在本机浏览器/应用内，不上传任何服务器。</span>
+      </div>
+      <div class="bottom-pad"></div>
+    </section>
+
+    <!-- ===== 页面：卡密库 ===== -->
+    <section class="page" id="page-list">
+      <div class="searchbar">
+        <div class="search">
+          <svg viewBox="0 0 24 24"><path d="M10 4a6 6 0 1 0 3.5 10.9l4.3 4.3 1.4-1.4-4.3-4.3A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg>
+          <input type="search" id="searchVal" placeholder="搜索卡号 / 密码 / 标签 / 有效期" autocomplete="off">
+          <button class="clear-x" id="btnClearSearch" aria-label="清空">×</button>
+        </div>
+      </div>
+      <div class="filterbar" id="filterChips">
+        <button class="fchip is-on" data-st="all">全部</button>
+        <button class="fchip" data-st="0">未使用</button>
+        <button class="fchip" data-st="1">已使用</button>
+        <button class="fchip" data-st="2">已封禁</button>
+        <button class="fchip" data-sort="time">最新优先</button>
+      </div>
+
+      <div class="toolrow" id="toolRow">
+        <button class="mini" id="btnSelectAll"><svg viewBox="0 0 24 24"><path d="M9.6 16.2 5.4 12l-1.4 1.4 5.6 5.6L20.4 8.2 19 6.8 9.6 16.2Z"/></svg>全选</button>
+        <button class="mini" id="btnCopyAll"><svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1Zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"/></svg>复制全部</button>
+        <button class="mini" id="btnBatch"><svg viewBox="0 0 24 24"><path d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h10v2H4v-2Zm14.5-1.5 1.5 1.5 3-3-1.4-1.4-1.6 1.6-.8-.8-1.2 1.2Z"/></svg>批量操作</button>
+      </div>
+
+      <div id="listBox" class="list-box"></div>
+      <div class="bottom-pad"></div>
+    </section>
+
+    <!-- ===== 页面：设置 ===== -->
+    <section class="page" id="page-set">
+      <div class="card">
+        <div class="card-hd"><span class="hd-ico g1"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 15h-2v-2h2v2Zm0-4h-2V7h2v6Z"/></svg></span><h2>外观与体验</h2></div>
+        <div class="row"><div class="row-txt"><b>主题</b><i>深色 / 浅色 自动保存</i></div>
+          <div class="seg small" id="themeSeg">
+            <button class="seg-i is-on" data-theme="dark">深色</button>
+            <button class="seg-i" data-theme="light">浅色</button>
+          </div>
+        </div>
+        <div class="row"><div class="row-txt"><b>震动反馈</b><i>点击按钮时轻微震动</i></div>
+          <label class="switch"><input type="checkbox" id="setHaptic" checked><span></span></label>
+        </div>
+        <div class="row"><div class="row-txt"><b>生成后自动切换</b><i>生成后跳到卡密库查看</i></div>
+          <label class="switch"><input type="checkbox" id="setAutoJump"><span></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><span class="hd-ico g2"><svg viewBox="0 0 24 24"><path d="M12 3v10.6l3.3-3.3 1.4 1.4L12 17.4l-4.7-4.7 1.4-1.4L12 13.6V3h0ZM5 19h14v2H5v-2Z"/></svg></span><h2>导出与备份</h2></div>
+        <div class="btn-grid">
+          <button class="tile" id="expTxt"><svg viewBox="0 0 24 24"><path d="M6 2h8l6 6v14H6V2Zm8 1.5V9h5.5L14 3.5Z"/></svg><span>导出 TXT</span></button>
+          <button class="tile" id="expCsv"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4Zm3 11h2v-2H7v2Zm0-4h2V9H7v2Zm4 4h2v-2h-2v2Zm0-4h2V9h-2v2Zm4 4h2v-2h-2v2Z"/></svg><span>导出 CSV</span></button>
+          <button class="tile" id="expJson"><svg viewBox="0 0 24 24"><path d="M12 3 4 7v10l8 4 8-4V7l-8-4Zm0 2.3 5.5 2.7L12 10.7 6.5 8 12 5.3Z"/></svg><span>备份 JSON</span></button>
+          <button class="tile" id="shareOut"><svg viewBox="0 0 24 24"><path d="M18 16a3 3 0 0 0-2.2 1l-6-3.1a3 3 0 0 0 0-1.8l6-3.1A3 3 0 1 0 15 6l-6 3.1a3 3 0 1 0 0 5.8L15 18a3 3 0 1 0 3-2Z"/></svg><span>分享/发送</span></button>
+          <button class="tile" id="impFile"><svg viewBox="0 0 24 24"><path d="M12 3v10.6l3.3-3.3 1.4 1.4L12 17.4l-4.7-4.7 1.4-1.4L12 13.6V3h0ZM5 19h14v2H5v-2Z"/></svg><span>导入卡密</span></button>
+          <button class="tile" id="resJson"><svg viewBox="0 0 24 24"><path d="M12 21V10.4L8.7 13.7 7.3 12.3 12 7.6l4.7 4.7-1.4 1.4L12 10.4V21h0ZM5 3h14v2H5V3Z"/></svg><span>恢复备份</span></button>
+        </div>
+        <input type="file" id="fileImport" accept=".txt,.csv,.json,text/plain" hidden>
+        <input type="file" id="fileRestore" accept=".json,application/json" hidden>
+      </div>
+
+      <div class="card danger-card">
+        <div class="card-hd"><span class="hd-ico gbad"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2ZM6 9h12l-1 12H7L6 9Z"/></svg></span><h2>清理数据</h2></div>
+        <div class="btn-grid">
+          <button class="tile danger" id="clrUsed"><svg viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2ZM6 9h12l-1 12H7L6 9Z"/></svg><span>删除已用</span></button>
+          <button class="tile danger" id="clrBan"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 0 1 6.3 12.9L5.1 5.7A8 8 0 0 1 12 4Z"/></svg><span>删除封禁</span></button>
+          <button class="tile danger" id="clrAll"><svg viewBox="0 0 24 24"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Zm3.5 12.1-1.4 1.4L12 13.4l-2.1 2.1-1.4-1.4L10.6 12 8.5 9.9l1.4-1.4L12 10.6l2.1-2.1 1.4 1.4L13.4 12l2.1 2.1Z"/></svg><span>清空全部</span></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><span class="hd-ico g5"><svg viewBox="0 0 24 24"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Zm1 14h-2v-2h2v2Zm0-4h-2V7h2v5Z"/></svg></span><h2>关于</h2></div>
+        <div class="about">
+          <p><b>卡密生成器 v1.0</b> · 纯本地运行</p>
+          <p id="aboutStore">已存储 0 条卡密</p>
+          <p class="mini-txt">可「添加到主屏幕」当 App 使用；支持离线。所有数据保存在本机，卸载或清空浏览器数据会丢失，请定期备份 JSON。</p>
+        </div>
+      </div>
+      <div class="bottom-pad"></div>
+    </section>
+
+  </main>
+
+  <!-- ===== 生成悬浮按钮 ===== -->
+  <div class="fab-wrap" id="fabWrap">
+    <button class="fab" id="btnGen">
+      <svg viewBox="0 0 24 24"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2Z"/></svg>
+      <span id="fabTxt">生成 10 条卡密</span>
+    </button>
+  </div>
+
+  <!-- ===== 底部导航 ===== -->
+  <nav class="tabbar">
+    <button class="tab is-on" data-page="gen">
+      <svg viewBox="0 0 24 24"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2Z"/></svg><span>生成</span>
+    </button>
+    <button class="tab" data-page="list">
+      <svg viewBox="0 0 24 24"><path d="M4 5h16v2H4V5Zm0 6h16v2H4v-2Zm0 6h16v2H4v-2Z"/></svg><span>卡密库</span>
+      <em class="badge" id="tabBadge" hidden>0</em>
+    </button>
+    <button class="tab" data-page="set">
+      <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm9 4a7.9 7.9 0 0 0-.14-1.5l2-1.55-2-3.46-2.35.94A8 8 0 0 0 16.2 4.6L15.8 2h-4l-.4 2.6a8 8 0 0 0-2.3 1.33L6.75 5 4.75 8.45l2 1.55A8 8 0 0 0 6.6 12c0 .5.05 1 .15 1.5l-2 1.55 2 3.46 2.35-.94a8 8 0 0 0 2.3 1.33l.4 2.6h4l.4-2.6a8 8 0 0 0 2.3-1.33l2.35.94 2-3.46-2-1.55c.1-.5.15-1 .15-1.5Z"/></svg><span>设置</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ===== 弹层 ===== -->
+<div class="sheet-mask" id="sheetMask"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="./assets/js/app.js"></script>
+</body>
+</html>

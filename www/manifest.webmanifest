@@ -1,0 +1,25 @@
+{
+  "name": "卡密生成器 · 手机版",
+  "short_name": "卡密生成器",
+  "description": "离线可用的卡密/激活码批量生成器：单码双码、字符池自定义、卡密库管理、导入导出与备份。",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "kami-generator",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#070b16",
+  "theme_color": "#0b1020",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "生成卡密", "url": "./index.html#gen", "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "卡密库", "url": "./index.html#list", "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

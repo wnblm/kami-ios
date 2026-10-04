@@ -1,0 +1,118 @@
+name: 构建 iOS 未签名 IPA
+
+# 推送到 GitHub 后自动在 macOS 机器上编译，产出未签名 IPA
+# 也可以在仓库的 Actions 页面手动点 “Run workflow” 触发
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-ipa:
+    name: 在 macOS 上编译未签名 IPA
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 缓存 SPM 依赖
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/org.swift.swiftpm
+          key: spm-${{ runner.os }}-${{ hashFiles('ios/App/CapApp-SPM/Package.swift') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: 显示编译环境
+        run: |
+          xcodebuild -version
+          node -v
+          npm -v
+
+      - name: 安装 npm 依赖
+        run: npm install --no-audit --no-fund
+
+      - name: 同步网页资源到 iOS 工程
+        run: npx cap sync ios
+
+      - name: 确认应用信息
+        run: |
+          echo "--- Info.plist 显示名 ---"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" ios/App/App/Info.plist || true
+          echo "--- 图标 ---"
+          ls -lh ios/App/App/Assets.xcassets/AppIcon.appiconset/
+          echo "--- 网页资源 ---"
+          ls -lh ios/App/App/public/ | head -20
+
+      - name: 解析 SPM 依赖（Capacitor 内核）
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -resolvePackageDependencies \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm" \
+            | tail -20
+
+      - name: 编译（不签名）
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            DEVELOPMENT_TEAM="" \
+            PRODUCT_BUNDLE_IDENTIFIER="com.kami.generator" \
+            archive 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log" | tail -45
+
+      - name: 打包成未签名 IPA
+        run: |
+          set -e
+          cd "$RUNNER_TEMP"
+          APP_PATH="App.xcarchive/Products/Applications/App.app"
+          echo "--- 校验产物 ---"
+          ls -la "$APP_PATH" | head -20
+          file "$APP_PATH/App" || true
+          echo "--- 确认网页资源已打进 App ---"
+          ls -lh "$APP_PATH/public/" | head -20
+          echo "--- 组装 IPA ---"
+          rm -rf Payload App.ipa
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/App.app
+          zip -qry App.ipa Payload
+          ls -lh App.ipa
+          shasum -a 256 App.ipa
+
+      - name: 上传 IPA 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: kami-ios-unsigned-ipa
+          path: ${{ runner.temp }}/App.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      # 失败时也把编译日志传上来，方便排查（成功时这个步骤不会执行）
+      - name: 上传编译日志（仅失败时）
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 编译日志-报错时看这个
+          path: |
+            ${{ runner.temp }}/xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 30
