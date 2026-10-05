@@ -843,20 +843,25 @@
      并把获得焦点的输入框滚进可视区域；收起后恢复原样。 */
   const kb = { base: 0, open: false, focusEl: null, savedTop: 0 };
   const vvNow = () => window.visualViewport || null;
+  /* 是否正在编辑输入框——iOS 上键盘一定伴随输入框聚焦，用它排除误判 */
+  const isTyping = () => {
+    const a = document.activeElement;
+    return !!(a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable));
+  };
 
   function kbUpdate() {
     const vv = vvNow();
     if (!vv) return;
     const vh = vv.height;
-    if (vh > kb.base) kb.base = vh;                // 记录最大可视高度作为基准
-    const isOpen = (kb.base - vh) > 96;            // 可视高度明显变小 = 键盘打开
-    if (isOpen === kb.open) return;
-    kb.open = isOpen;
-    const pad = isOpen ? Math.max(0, kb.base - vh) : 0;
+    if (!kb.open) kb.base = Math.max(kb.base, vh);   // 仅在收起状态刷新基准，避免误判后基准被污染
+    const nowOpen = (kb.base - vh) > 120 && isTyping();
+    if (nowOpen === kb.open) return;
+    kb.open = nowOpen;
+    const pad = nowOpen ? Math.max(0, kb.base - vh) : 0;
     document.documentElement.style.setProperty('--kb', pad + 'px');
-    document.body.classList.toggle('kb-open', isOpen);
+    document.body.classList.toggle('kb-open', nowOpen);
     clearTimeout(kbUpdate._t);
-    if (isOpen) {
+    if (nowOpen) {
       kbUpdate._t = setTimeout(kbScroll, 260);
     } else {
       kbUpdate._t = setTimeout(() => {
@@ -897,11 +902,53 @@
       const t = e.target;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) kb.focusEl = t;
     });
+    // 失去焦点 / 点击空白：立刻恢复底部导航，避免残留在“键盘打开”状态
+    document.addEventListener('focusout', () => setTimeout(() => { if (!isTyping()) kbUpdate(); }, 120));
     // 点空白收起键盘
     $('#scroll').addEventListener('click', e => {
       if (e.target.closest('input,textarea,select,button,label,.chip,.seg,.switch')) return;
       if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     });
+    // 定时自愈：万一因异常（旋转、切后台、WebView 尺寸抖动）卡在 kb-open，
+    // 而没有输入框聚焦，就强制恢复底部导航
+    setInterval(() => {
+      if (document.body.classList.contains('kb-open') && !isTyping()) {
+        kb.open = false;
+        document.documentElement.style.setProperty('--kb', '0px');
+        document.body.classList.remove('kb-open');
+      }
+    }, 1200);
+    // 连点 6 次标题可查看视口诊断信息（排查底部栏位置问题用）
+    let taps = 0, tapTimer = null;
+    $('.brand').addEventListener('click', () => {
+      if (++taps >= 6) {
+        taps = 0; showViewportInfo();
+      }
+      clearTimeout(tapTimer);
+      tapTimer = setTimeout(() => { taps = 0; }, 1200);
+    });
+  }
+
+  /* 视口诊断浮层：底部栏位置异常时可据此定位原因 */
+  function showViewportInfo() {
+    const vv = vvNow();
+    const tab = $('.tabbar'), fab = $('.fab-wrap');
+    const tr = tab.getBoundingClientRect(), fr = fab.getBoundingClientRect();
+    const cs = getComputedStyle(tab);
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;inset:auto 8px 8px 8px;z-index:9999;background:rgba(0,0,0,.88);' +
+      'color:#0f0;font:11px/1.5 ui-monospace,Menlo,monospace;padding:10px;border-radius:10px;white-space:pre-wrap;word-break:break-all';
+    probe.textContent =
+      'innerH=' + window.innerHeight + '  innerW=' + window.innerWidth + '\n' +
+      'vv.height=' + (vv ? Math.round(vv.height) : 'n/a') + '  vv.offsetTop=' + (vv ? vv.offsetTop : 'n/a') + '\n' +
+      'screenH=' + window.screen.height + '  dpr=' + window.devicePixelRatio + '\n' +
+      'kb-open=' + document.body.classList.contains('kb-open') + '  kb.base=' + kb.base + '  --kb=' + getComputedStyle(document.documentElement).getPropertyValue('--kb').trim() + '\n' +
+      'tabbar: display=' + cs.display + ' top=' + Math.round(tr.top) + ' bottom=' + Math.round(tr.bottom) + ' h=' + Math.round(tr.height) + '\n' +
+      'fab: top=' + Math.round(fr.top) + ' bottom=' + Math.round(fr.bottom) + '\n' +
+      'safeB=' + getComputedStyle(document.documentElement).getPropertyValue('--kb') + '  standalone=' + (window.navigator.standalone === true);
+    probe.onclick = () => probe.remove();
+    document.body.appendChild(probe);
+    setTimeout(() => probe.remove(), 20000);
   }
 
   /* ---------------- 启动 ---------------- */

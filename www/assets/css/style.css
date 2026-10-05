@@ -379,11 +379,20 @@ html[data-theme="light"] .toast{background:rgba(17,24,39,.92)}
 body.kb-open .fab-wrap{transform:translateY(140%);opacity:0;pointer-events:none}
 body.kb-open .tabbar{display:none}
 body.kb-open .bottom-pad{height:calc(30px + env(safe-area-inset-bottom,0px))}
+/* 键盘打开时，整个 App 高度也要减去键盘高度，保证输入框不被键盘盖住 */
+body.kb-open .app{height:calc(100% - var(--kb, 0px))}
 /* iOS 在键盘上方保留一条可视区，但触摸事件到不了那里，去掉这层“挡板” */
 .sheet,.toast,.fab-wrap,.tabbar{pointer-events:auto}
 body.kb-open .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 /* 输入框滚动到可视区域时留出呼吸空间 */
 .field input,.field select,.search input,#searchVal{scroll-margin-bottom:26px;scroll-margin-top:80px}
+
+/* iOS 安全区兜底：如果 WebView 没有下发 env()，用 iOS 常见值补上，避免底部导航被顶出屏幕 */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .tabbar{min-height:58px}
+}
+/* 无论环境如何，底部导航始终占据可见高度，绝不被压成 0 */
+.tabbar{min-height:56px;box-sizing:border-box}
 
 /* ---------- 小屏适配 ---------- */
 @media (max-width:360px){
